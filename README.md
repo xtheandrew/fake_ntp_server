@@ -3,5 +3,7 @@ fake_ntp_server
 
 This is a simple fake NTP server.
 
-The server currently tries to convince the client that the client clock is 400 PPM too fast.
-This leads to the client slowing its clock, which leads it to slowly move out of sync.
+How to fake time:
+```
+sudo ./fake_ntp_server.py --listen 172.17.1.111 --time 20211031015500
+```
