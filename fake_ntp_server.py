@@ -4,20 +4,20 @@ from __future__ import print_function
 import argparse
 import socket
 import time
+import datetime
 
 from ntp_packet import (
     NTPPacket,
     NTPTimestamp,
 )
 
-def fake_server(address):
+def fake_server(address, fake_time):
 
     s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind( (address, 123) )
 
-    drift_start = time.time()
-    speed = 0.9996
+    time_start = time.time()
 
     while True:
         packet, source = s.recvfrom(100)
@@ -36,8 +36,8 @@ def fake_server(address):
             print('Client time:', packet.transmit_timestamp)
         except:
             pass
-        time_since_start = time.time() - drift_start
-        return_time = drift_start + time_since_start * speed
+        time_since_start = time.time() - time_start
+        return_time = fake_time + time_since_start
 
         response = NTPPacket()
         response.version = packet.version
@@ -60,14 +60,19 @@ def parse_bind_addr(address):
     else:
         return address[4][0]
 
+def parse_time(t):
+    dt = datetime.datetime.strptime(t, '%Y%m%d%H%M%S')
+    return time.mktime(dt.timetuple())
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Fake NTP server')
     parser.add_argument('--listen', type=parse_bind_addr, default='::')
+    parser.add_argument('--time', type=parse_time, default=datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
     return parser.parse_args()
 
 def main():
     args = parse_args()
-    fake_server(args.listen)
+    fake_server(args.listen, args.time)
 
 if __name__ == '__main__':
     main()
